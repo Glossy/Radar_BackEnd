@@ -3,7 +3,7 @@ package spring_with_netty.netty.handler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.socket.DatagramPacket;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 import spring_with_netty.netty.util.DataProcessor;
 import spring_with_netty.netty.RadarServer_V1;
 

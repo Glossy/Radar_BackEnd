@@ -9,8 +9,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 import spring_with_netty.netty.handler.RadarTCPHandler;
 
 /**
@@ -18,7 +17,7 @@ import spring_with_netty.netty.handler.RadarTCPHandler;
  * @Date: 2019/3/24 9:23 PM
  */
 public class RadarServer implements Runnable{
-    public static Logger LOG = LogManager.getLogger(RadarServer.class.getName());
+    public static Logger LOG = Logger.getLogger("RadarServer");
     private Thread t;
     private String threadName = "RadarServer-Thread";
     private int listen_port = 5100;  //旧雷达5100 新雷达 50000

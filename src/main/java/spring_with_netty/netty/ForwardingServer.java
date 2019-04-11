@@ -5,8 +5,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 import spring_with_netty.netty.handler.ForwardingTCPHandler;
 
 import java.util.Map;
@@ -22,7 +21,7 @@ public class ForwardingServer implements Runnable{
     private String threadName = "Forwarding-Server";
     private int listenPort = 6666;
     public Channel ch = null;
-    public static Logger LOG = LogManager.getLogger(ForwardingServer.class.getName());
+    public static Logger LOG = Logger.getLogger("ForwardingServer");
     private volatile static Map<String,Channel> ch_map = new ConcurrentHashMap<String,Channel>();//存储WebSocket连接的通道<PC[num],channel>
 
     public void setListenPort(int port){

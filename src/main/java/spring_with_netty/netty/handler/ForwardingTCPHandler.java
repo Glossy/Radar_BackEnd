@@ -22,7 +22,6 @@ public class ForwardingTCPHandler extends ChannelInboundHandlerAdapter {
         try {
             ByteBuf in = (ByteBuf)msg;
             ForwardingServer.LOG.info("Recv from WebSocket:" + in.toString(CharsetUtil.UTF_8));
-            //ctx.writeAndFlush(Unpooled.copiedBuffer(in));
 
         } finally {
             ReferenceCountUtil.release(msg);
