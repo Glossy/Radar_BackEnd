@@ -34,16 +34,15 @@
                     </execution>
                 </executions>
             </plugin>
-
-
             <!--<plugin>-->
-            <!--<groupId>org.apache.maven.plugins</groupId>-->
-            <!--<artifactId>maven-compiler-plugin</artifactId>-->
-            <!--<configuration>-->
-            <!--<source>6</source>-->
-            <!--<target>6</target>-->
-            <!--</configuration>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-compiler-plugin</artifactId>-->
+                <!--<configuration>-->
+                    <!--<source>6</source>-->
+                    <!--<target>6</target>-->
+                <!--</configuration>-->
             <!--</plugin>-->
+
 
         </plugins>
     </build>
@@ -96,6 +95,40 @@
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
         </dependency>
+
+        <!--<dependency>-->
+            <!--<groupId>org.projectlombok</groupId>-->
+            <!--<artifactId>lombok</artifactId>-->
+            <!--<version>1.16.18</version>-->
+            <!--&lt;!&ndash;<scope>provided</scope>&ndash;&gt;-->
+            <!--<scope>compile</scope>-->
+        <!--</dependency>-->
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-mongodb -->
+        <!--&lt;!&ndash;spring-data-mongodb 2.0.3.RELEASE/mongo java driver 3.6.4&ndash;&gt;-->
+        <!--<dependency>-->
+            <!--<groupId>org.springframework.boot</groupId>-->
+            <!--<artifactId>spring-boot-starter-data-mongodb</artifactId>-->
+            <!--&lt;!&ndash;<version>2.0.8.RELEASE</version>&ndash;&gt;-->
+            <!--&lt;!&ndash;<exclusions>&ndash;&gt;-->
+            <!--&lt;!&ndash;<exclusion>&ndash;&gt;-->
+            <!--&lt;!&ndash;<groupId>org.springframework.data</groupId>&ndash;&gt;-->
+            <!--&lt;!&ndash;<artifactId>spring-data-mongodb</artifactId>&ndash;&gt;-->
+            <!--&lt;!&ndash;</exclusion>&ndash;&gt;-->
+            <!--&lt;!&ndash;</exclusions>&ndash;&gt;-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+            <!--<groupId>org.springframework.data</groupId>-->
+            <!--<artifactId>spring-data-mongodb</artifactId>-->
+            <!--<version>1.9.6.RELEASE</version>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+            <!--<groupId>nu.pattern</groupId>-->
+            <!--<artifactId>opencv</artifactId>-->
+            <!--<version>2.4.9-4</version>-->
+        <!--</dependency>-->
 
         <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
         <!--<dependency>-->

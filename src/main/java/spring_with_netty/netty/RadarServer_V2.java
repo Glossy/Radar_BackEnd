@@ -1,44 +1,45 @@
 package spring_with_netty.netty;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.log4j.Logger;
-import spring_with_netty.netty.handler.ForwardingTCPHandler;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import spring_with_netty.netty.handler.RadarTCPHandler;
 
 /**
  * @Author: Wu
- * @Date: 2019/3/24 8:01 AM
- * 转发服务器
+ * @Date: 2019/7/24 3:21 PM
  */
-public class ForwardingServer implements Runnable{
+public class RadarServer_V2 implements Runnable{
+    public static Logger LOG = Logger.getLogger("RadarServer");
     private Thread t;
-    private String threadName = "ForwardingServer";
-    private int listenPort = 6666;
-    public Channel ch = null;
-    public static Logger LOG = Logger.getLogger("ForwardingServer");
-    private volatile static Map<String,Channel> ch_map = new ConcurrentHashMap<String,Channel>();//存储WebSocket连接的通道<PC[num],channel>
-
-    public void setListenPort(int port){
-        this.listenPort = port;
-        LOG.info("Listen Port for WebSocket : " + port);
-    }
+    private String threadName = "RadarServer-Thread";
+    private int listen_port = 5100;  //旧雷达5100 新雷达 50000
+    private volatile static int packsNum = 0;
 
     public void setThreadName(String name){
         this.threadName = name;
     }
 
-    public static Map<String,Channel> getCh_map(){
-        return ch_map;
+    public void setListen_port(int port){
+        this.listen_port = port;
     }
 
-    public int getChannelAmount(){
-        return ch_map.size();
+    public static void resetPacksNum(){
+        packsNum = 0;
+    }
+
+    public static void addPacksNum(){
+        packsNum++;
+    }
+
+    public static int getPacksNum(){
+        return packsNum;
     }
 
     public void run(){
@@ -52,21 +53,20 @@ public class ForwardingServer implements Runnable{
                     .childHandler( new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
-                            ch.pipeline().addLast(new ForwardingTCPHandler());
-                            //ch.pipeline().addLast(new TCP_ServerHandler4PC());//这样会有两个TCP_ServerHandler4PC处理器
+                            ch.pipeline().addLast(new RadarTCPHandler());
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
 
-            ChannelFuture cf = b.bind(listenPort).sync();
-            LOG.info("Forwarding Server Started at Port: " + listenPort);
 
-            ch = cf.channel();
-            ch.closeFuture().sync();
-        } catch (Exception e){
+            ChannelFuture cf = b.bind(listen_port).sync();
+            LOG.info("Radar Server Started at Port: " + listen_port);
+            cf.channel().closeFuture().sync();
+        } catch (Exception e) {
             LOG.error(e.getMessage());
-        } finally {
+        }
+        finally {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }
@@ -81,8 +81,8 @@ public class ForwardingServer implements Runnable{
     }
 
     public static void main(String[] args){
-        ForwardingServer server = new ForwardingServer();
-        server.run();
+        RadarServer server = new RadarServer();
+        server.start();
     }
 
 }
