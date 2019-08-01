@@ -4,8 +4,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.apache.log4j.Logger;
+import spring_with_netty.netty.TCPRadarServer;
 import spring_with_netty.netty.util.DataProcessor;
-import spring_with_netty.netty.RadarServer;
 
 
 /**
@@ -14,7 +14,7 @@ import spring_with_netty.netty.RadarServer;
  * RadarServer的消息解码Handler
  */
 public class RadarTCPHandler extends ChannelInboundHandlerAdapter {
-    private Logger logger = RadarServer.LOG;
+    private Logger logger = TCPRadarServer.LOG;
     private static DataProcessor processor = new DataProcessor();
 
 
@@ -24,7 +24,7 @@ public class RadarTCPHandler extends ChannelInboundHandlerAdapter {
 //        ByteBuf in = (ByteBuf) msg;
 //        String message = in.toString(CharsetUtil.UTF_8);
 //        System.out.println(message);
-        RadarServer.addPacksNum();
+        TCPRadarServer.addPacksNum();
         processor.parse((ByteBuf)msg);
     }
 

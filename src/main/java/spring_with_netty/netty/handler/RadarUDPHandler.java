@@ -4,8 +4,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.socket.DatagramPacket;
 import org.apache.log4j.Logger;
+import spring_with_netty.netty.UDPRadarServer;
 import spring_with_netty.netty.util.DataProcessor;
-import spring_with_netty.netty.RadarServer_V1;
 
 
 /**
@@ -13,17 +13,17 @@ import spring_with_netty.netty.RadarServer_V1;
  * @Date: 2019/4/9 9:41 PM
  */
 public class RadarUDPHandler extends ChannelInboundHandlerAdapter {
-    private Logger logger = RadarServer_V1.LOG;
+    private Logger logger = UDPRadarServer.LOG;
     private static DataProcessor processor = new DataProcessor();
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
-        if (!RadarServer_V1.isConnected){
-            RadarServer_V1.LOG.info("Radar Connected!");
-            RadarServer_V1.isConnected = true;
+        if (!UDPRadarServer.isConnected){
+            UDPRadarServer.LOG.info("Radar Connected!");
+            UDPRadarServer.isConnected = true;
         }
-        RadarServer_V1.addPacksNum();
+        UDPRadarServer.addPacksNum();
         processor.parse((DatagramPacket)msg);
 
     }
@@ -39,5 +39,11 @@ public class RadarUDPHandler extends ChannelInboundHandlerAdapter {
         cause.printStackTrace();
         ctx.close();
     }
+
+    @Override
+    public void channelInactive(final ChannelHandlerContext ctx){
+        UDPRadarServer.isConnected = false;
+    }
+
 
 }

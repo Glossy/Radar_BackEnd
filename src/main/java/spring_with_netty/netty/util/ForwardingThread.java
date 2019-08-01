@@ -16,7 +16,7 @@ import java.util.Map;
  * 具体的转发类
  */
 public class ForwardingThread {
-    protected static void send2WebSocket(ByteBuf temp) {
+    public static void send2WebSocket(ByteBuf temp) {
         synchronized(ForwardingServer.getCh_map()) {
             for(Iterator<Map.Entry<String, Channel>> item = ForwardingServer.getCh_map().entrySet().iterator(); item.hasNext();) {
                 Map.Entry<String,Channel> entry = item.next();
@@ -39,9 +39,6 @@ public class ForwardingThread {
         }
     }
 
-    public static void main(String[] args){
-        String message = "{'dispatch': 'workers', 'emit': {'event': 'transection', 'args': {'area': 'A8', 'time': '2019-03-24 00:10:29.272017', 'action': 1}}}\n";
-        ForwardingThread.send2WebSocket(Unpooled.wrappedBuffer(message.getBytes()));
-    }
+
 }
 

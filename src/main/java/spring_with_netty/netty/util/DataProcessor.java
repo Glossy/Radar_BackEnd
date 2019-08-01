@@ -6,7 +6,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.ReferenceCountUtil;
 //import org.bson.Document;
-import spring_with_netty.netty.RadarServer;
+import spring_with_netty.netty.TCPRadarServer;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -111,7 +111,7 @@ public class DataProcessor {
                     + platform + ", \"Frame Number\":"+ frameNum + "\"Time\":"+ time;
             on_V2Target_Data(hex_string,message);
         } else{
-            RadarServer.LOG.error("Unknown Header");
+            TCPRadarServer.LOG.error("Unknown Header");
         }
     }
 
@@ -144,7 +144,7 @@ public class DataProcessor {
 //
 //            mongodb.collection.insertOne(doc, new SingleResultCallback<Void>() {
 //                public void onResult(final Void result, final Throwable t) {
-//                    RadarServer.LOG.info("Document inserted!");
+//                    TCPRadarServer.LOG.info("Document inserted!");
 //                }});
 
         }
@@ -206,8 +206,8 @@ public class DataProcessor {
             String des_mac = hex_string.substring(0, 16).replace("(.{2})", "$1:");
             String mac = hex_string.substring(16, 32).replace("(.{2})", "$1:");
 //            String ip = hex_string.substring();
-//            RadarServer_V1.LOG.info("Radar Connected!");
-//            RadarServer_V1.LOG.info("Radar MAC address:  Radar IP address: ");
+//            UDPRadarServer.LOG.info("Radar Connected!");
+//            UDPRadarServer.LOG.info("Radar MAC address:  Radar IP address: ");
         }
 //        System.out.println(bytes2String(pack));
 
@@ -220,7 +220,7 @@ public class DataProcessor {
         if (hex_string.substring(0, 4).equals("55aa")){
 //            System.out.println("合法报头");
         } else{
-            RadarServer.LOG.error("Unknown Header");
+            TCPRadarServer.LOG.error("Unknown Header");
         }
 
         if(hex_string.substring(4, 6).equals("12")){
@@ -263,7 +263,7 @@ public class DataProcessor {
 //
 //            mongodb.collection.insertOne(doc, new SingleResultCallback<Void>() {
 //                public void onResult(final Void result, final Throwable t) {
-//                    RadarServer.LOG.info("Document inserted!");
+//                    TCPRadarServer.LOG.info("Document inserted!");
 //                }});
 
         }
@@ -272,11 +272,4 @@ public class DataProcessor {
     }
 
 
-
-
-    public static void main(String[] args){
-        DataProcessor p = new DataProcessor();
-        String hex_string = "55aa1201ff02000002000a8d000001ff0000001a0044ec00000694116b0000065e000001a80057e2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000053";
-        p.on_Target_Data(hex_string);
-    }
 }

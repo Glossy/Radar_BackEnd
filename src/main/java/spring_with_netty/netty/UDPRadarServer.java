@@ -7,17 +7,15 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import org.apache.log4j.Logger;
 import spring_with_netty.netty.handler.RadarUDPHandler;
 
-import javax.annotation.PostConstruct;
-
 /**
  * New Radar UDP Server
  * @Author: Wu
  * @Date: 2019/4/9 9:20 PM
  */
-public class RadarServer_V1 implements Runnable{
-    public static Logger LOG = Logger.getLogger("RadarServer");
+public class UDPRadarServer implements Runnable{
+    public static Logger LOG = Logger.getLogger("UDPRadarServer");
     private Thread t;
-    private String threadName = "RadarServer-V1-Thread";
+    private String threadName = "UDPRadarServer-Thread";
     private int listen_port = 50000;  //旧雷达5100 新雷达 50000
     private volatile static int packsNum = 0;
     public static boolean isConnected = false;
@@ -81,10 +79,6 @@ public class RadarServer_V1 implements Runnable{
         }
     }
 
-    public static void main(String[] args){
-        RadarServer_V1 server = new RadarServer_V1();
-        server.start();
-    }
 
 
 }

@@ -16,10 +16,10 @@ import spring_with_netty.netty.handler.RadarTCPHandler;
  * @Author: Wu
  * @Date: 2019/3/24 9:23 PM
  */
-public class RadarServer implements Runnable{
-    public static Logger LOG = Logger.getLogger("RadarServer");
+public class TCPRadarServer implements Runnable{
+    public static Logger LOG = Logger.getLogger("TCPRadarServer");
     private Thread t;
-    private String threadName = "RadarServer-Thread";
+    private String threadName = "TCPRadarServer-Thread";
     private int listen_port = 5100;  //旧雷达5100 新雷达 50000
     private volatile static int packsNum = 0;
 
@@ -81,10 +81,6 @@ public class RadarServer implements Runnable{
         }
     }
 
-    public static void main(String[] args){
-        RadarServer server = new RadarServer();
-        server.start();
-    }
 
 
 }

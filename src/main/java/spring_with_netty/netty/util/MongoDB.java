@@ -43,7 +43,7 @@ public class MongoDB {
 //        try {
 //            return this.mongoClient.getDatabase(this.dbName);
 //        }catch(IllegalArgumentException e) {
-//            RadarServer.LOG.error(e.getMessage());
+//            TCPRadarServer.LOG.error(e.getMessage());
 //            throw e;
 //        }
 //    }
@@ -53,7 +53,7 @@ public class MongoDB {
 //        try {
 //            return this.mongoDatabase.getCollection(this.colName);
 //        }catch(IllegalArgumentException e) {
-//            RadarServer.LOG.error(e.getMessage());
+//            TCPRadarServer.LOG.error(e.getMessage());
 //            throw e;
 //        }
 //    }
@@ -64,9 +64,9 @@ public class MongoDB {
 //            mongoClient = MongoClients.create();
 //            mongoDatabase = mongoClient.getDatabase(dbName);
 //            collection = mongoDatabase.getCollection(colName);
-//            RadarServer.LOG.info("Connected to db.col(%s.%s) successfully\n", dbName, colName);
+//            TCPRadarServer.LOG.info("Connected to db.col(%s.%s) successfully\n", dbName, colName);
 //        }catch(Exception e) {
-//            RadarServer.LOG.error("MongoDB init unsuccessfully!\n" + e.getMessage());
+//            TCPRadarServer.LOG.error("MongoDB init unsuccessfully!\n" + e.getMessage());
 //        }
 //    }
 

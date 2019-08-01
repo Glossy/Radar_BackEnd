@@ -80,9 +80,4 @@ public class ForwardingServer implements Runnable{
         }
     }
 
-    public static void main(String[] args){
-        ForwardingServer server = new ForwardingServer();
-        server.run();
-    }
-
 }
