@@ -86,7 +86,8 @@ public class SerialRadarServer implements Runnable{
             }
         });
 
-
+        uploadThread.start();
+        downloadThread.start();
 
 
     }
