@@ -8,8 +8,12 @@ import io.netty.util.ReferenceCountUtil;
 //import org.bson.Document;
 import spring_with_netty.netty.TCPRadarServer;
 
+import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 从Handler接收数据的处理类
@@ -25,12 +29,94 @@ public class DataProcessor {
 
 //    SingleResultCallback<Void> callback;
 
+    /**
+     * hexstring to Int
+     * @param string
+     * @return
+     */
     public int string2Int(String string){
         return  Integer.parseInt(string, 16);
     }
 
+//    /**
+//     * 貌似是小端16进制字符串转byte
+//     * @param hexstring
+//     * @return
+//     */
+//    public byte[] hexstring2bytes(String hexstring){
+//        byte[] destByte = new byte[hexstring.length()/2];
+//        int j=0;
+//        for(int i=0;i<destByte.length;i++) {
+//            byte high = (byte) (Character.digit(hexstring.charAt(j), 16) & 0xff);
+//            byte low = (byte) (Character.digit(hexstring.charAt(j + 1), 16) & 0xff);
+//            destByte[i] = (byte) (high << 4 | low);
+//            j+=2;
+//        }
+//        return destByte;
+//    }
 
-    /***
+    /**
+     * 四字节（8位16进制）字符串转long 小端
+     * @param hexstring
+     * @return
+     * @throws Exception
+     */
+    public long hexstring2Unit32(String hexstring) throws IOException{
+        BigInteger unit32;
+//        String endianstring = new StringBuffer(hexstring).reverse().toString();
+        String endianstring = littleEndianString2HexString(hexstring);
+        if (hexstring.length() == 8){
+            unit32 = new BigInteger(endianstring, 16);
+            return unit32.longValue();
+        }
+        throw new IOException("Wrong length of input string");
+    }
+
+
+    /**
+     * 二字节（4位16进制）字符串转int 小端
+     * @param hexstring
+     * @return
+     * @throws Exception
+     */
+    public int hexstring2Unit16(String hexstring) throws IOException{
+        BigInteger unit16;
+        String endianstring = littleEndianString2HexString(hexstring);
+        if (hexstring.length() == 4){
+            unit16 = new BigInteger(endianstring, 16);
+            return unit16.intValue();
+        }
+        throw new IOException("Wrong length of input string");
+    }
+    /**
+     * java实现C中 uint32_t
+     * @param l
+     * @return
+     */
+    public long getUint32(long l){
+        return l & 0x00000000ffffffff;
+    }
+
+//    /**
+//     * bytes转为unit32_t(报错）
+//     * @param bytes
+//     * @param start
+//     * @param length
+//     * @return
+//     */
+//    public long bytes2long(byte[] bytes, int start, int length){
+//        byte[] parseByte = new byte[4];
+//        System.arraycopy(bytes, start, parseByte, 0, length);
+//
+//        ByteBuffer buf=ByteBuffer.allocateDirect(4); //无额外内存的直接缓存
+//        buf=buf.order(ByteOrder.LITTLE_ENDIAN);//默认大端，小端用这行
+//        buf.put(parseByte);
+//        buf.rewind();
+//        long a = buf.getLong();
+//        return getUint32(a);
+//    }
+
+    /**
      * 将bytes[] 数组中的（四字节）数据转为float
      * @param data
      * @param start
@@ -83,58 +169,82 @@ public class DataProcessor {
         }
     }
 
-    public void parseV2(ByteBuf in){
-        if(!in.hasArray()){
-            int len =  in.readableBytes();
-            byte[] bytes = new byte[len];
-            in.getBytes(0, bytes);
-            String hex_string = bytes2String(bytes);
-            on_V2Data(hex_string);
-        } else {
-            byte[] bytes = in.array();
-            String hex_string = bytes2String(bytes);
-            on_Data(hex_string);
-        }
-    }
-
-    public void on_V2Data(String hex_string){
-        if (hex_string.substring(0, 16).equals("0201040306050807")){
+    /**
+     * 串口雷达报头检测
+     * @param hex_string
+     * @return
+     * @throws IOException
+     */
+    public List<Object> on_V2Data(String hex_string) throws IOException{
+//        if (hex_string.substring(0, 16).equals("0201040306050807")){
 //            System.out.println("合法报头");
 
-            double version = string2Int(hex_string.substring(16, 24)) ; //Version
-            double total_length = string2Int(hex_string.substring(24, 32)) ; //total packet length
-            double platform = string2Int(hex_string.substring(32, 40)) ;
-            double frameNum = string2Int(hex_string.substring(40, 48)) ; //Frame Number
-            double time = string2Int(hex_string.substring(48, 56)) ; //CPU Cycles
+//            double version = string2Int(hex_string.substring(16, 24)) ; //Version
+//            double total_length = string2Int(hex_string.substring(24, 32)) ; //total packet length
+//            double platform = string2Int(hex_string.substring(32, 40)) ;
+//            double frameNum = string2Int(hex_string.substring(40, 48)) ; //Frame Number
+//            double time = string2Int(hex_string.substring(48, 56)) ; //CPU Cycles
+//
+//            String message = " \"Version\":" + version + ", \"total packet length\":" + total_length + "\"Platform\":"
+//                    + platform + ", \"Frame Number\":"+ frameNum + "\"Time\":"+ time;
+//            on_V2Target_Data(hex_string,message);
+//        } else{
+//            TCPRadarServer.LOG.error("Unknown Header");
+//        }
+        if (hex_string.substring(0, 16).equals("0201040306050807")){
+            List<Object> list = new ArrayList<>();
+            long version = hexstring2Unit32(hex_string.substring(16, 24)) ; //Version
+            long total_length = hexstring2Unit32(hex_string.substring(24, 32)) ; //total packet length
+            long platform = hexstring2Unit32(hex_string.substring(32, 40)) ;
+            long frameNum = hexstring2Unit32(hex_string.substring(40, 48)) ; //Frame Number
+            long timeCpuCycles = hexstring2Unit32(hex_string.substring(48, 56)) ; //CPU Cycles
+            long numDetectedObj = hexstring2Unit32(hex_string.substring(56, 64)); //Detected Objects
+            long numTLVs = hexstring2Unit32(hex_string.substring(64, 72));//Number TLV’s
 
             String message = " \"Version\":" + version + ", \"total packet length\":" + total_length + "\"Platform\":"
-                    + platform + ", \"Frame Number\":"+ frameNum + "\"Time\":"+ time;
-            on_V2Target_Data(hex_string,message);
-        } else{
-            TCPRadarServer.LOG.error("Unknown Header");
+                    + platform + ", \"Frame Number\":"+ frameNum + ", \"TimeCpuCycles\":"+ timeCpuCycles
+                    + ", \"Detected Objects\":" + numDetectedObj + ", \"Number TLV’s\":" + numTLVs;
+
+            if (total_length%32 != 0){ //雷达会自动补齐缺失位数
+                total_length = (32 - total_length%32) + total_length;
+            }
+            list.add(total_length);
+            list.add(numDetectedObj);
+            list.add(message);
+            return list;
         }
+        return null;
     }
 
-    public void on_V2Target_Data(String hex_string, String message){
-        int target_count = string2Int(hex_string.substring(56, 64));
+    public void on_V2Target_Data(String hex_string, long targetNum, String message) throws IOException{
+        long detectedObjectNum = hexstring2Unit32(hex_string.substring(16, 24));
+        String description = littleEndianString2HexString(hex_string.substring(16,24));
+        long Qformat = hexstring2Unit32(hex_string.substring(16,24));
+        long target_count = targetNum;
+        String header = message;
 
 //        if(target_count != 0){
 //            System.out.println("非0目标");
 //        }
         for(int i = 0; i < target_count; i++){
-            int start = 96 + 24 * i;
+            int start = 24 + 24 * i;
             int end = start +  24;
 
-            double range = string2Int(hex_string.substring(start, start+4)) ; //Range Index
-            double doppler = string2Int(hex_string.substring(start+4, start+8)); //Doppler Index
-            double peak = string2Int(hex_string.substring(start+8, start + 12)); //Peak Value
-            double x = string2Int(hex_string.substring(start+12, start+16)); //X轴距离
-            double y = string2Int(hex_string.substring(start+16, start+20)); //Y轴距离
-            double z = string2Int(hex_string.substring(start+20, start+24)); //Z轴距离
+            int range = hexstring2Unit16(hex_string.substring(start, start+4)) ; //Range Index
+            int doppler = hexstring2Unit16(hex_string.substring(start+4, start+8)); //Doppler Index
+            int peak = hexstring2Unit16(hex_string.substring(start+8, start + 12)); //Peak Value
+            int x = hexstring2Unit16(hex_string.substring(start+12, start+16)); //X轴距离
+            int y = hexstring2Unit16(hex_string.substring(start+16, start+20)); //Y轴距离
+            int z = hexstring2Unit16(hex_string.substring(start+20, start+24)); //Z轴距离
 
-            message = "{\"dispatch\":\"workers\", \"emit\":{\"event\":\"dot\", \"args\": {\"x\":" + x + ", \"y\":" + y + ", \"z\":" + z + message + "}}}";
+            message = "{\"dispatch\":\"workers\", \"emit\":{\"event\":\"dot\", \"args\": {\"x\":" + x + ", \"y\":" + y + ", \"z\":" + z
+                    + ", \"range\":" + range + ", \"doppler\":" + doppler + ", \"peak\":" + peak + message + "}}}";
+
+//            System.out.println(message);
 
             ForwardingThread.send2WebSocket(Unpooled.wrappedBuffer(message.getBytes()));
+            message = header;
+
 //            数据库相关操作
 //            String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 //            Document doc = new Document("time", date)
@@ -215,6 +325,10 @@ public class DataProcessor {
     }
 
 
+    /**
+     * 翻译自python代码 合法帧头检测
+     * @param hex_string
+     */
     public void on_Data(String hex_string){
 
         if (hex_string.substring(0, 4).equals("55aa")){
@@ -269,6 +383,19 @@ public class DataProcessor {
         }
 
         //return "{'dispatch': 'workers', 'emit': {'event': 'transection', 'args': {'area': 'A8', 'time': '2019-03-24 00:10:29.272017', 'action': 1}}}\n";
+    }
+
+    /**
+     * 两两反转小端hexString到正常十六进制字符串
+     * @param hexstring
+     * @return
+     */
+    public String littleEndianString2HexString(String hexstring){
+        String littleendianstring = "";
+        for(int i = hexstring.length(); i >= 2; i = i - 2){
+            littleendianstring = littleendianstring + hexstring.substring(i-2, i);
+        }
+        return littleendianstring;
     }
 
 

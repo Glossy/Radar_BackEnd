@@ -71,13 +71,21 @@ public class ServerTest {
             byte[] line;
             for(Iterator iterator = arrayList.iterator(); iterator.hasNext();){
                 String lines = (String)iterator.next();
-                System.out.print(lines);
-                line = (lines.trim()+'\n').getBytes(StandardCharsets.UTF_8);
-                System.out.print(line);
+                char[] array = (lines.trim() + "\n").toCharArray();
+                System.out.println(array);
+                System.out.println(lines);
+                line = (lines.trim()+"\n").getBytes(StandardCharsets.UTF_8);
+                System.out.println(new String(line,StandardCharsets.UTF_8));
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+
+    @Test
+    public void javalibrarypath(){
+        System.out.println(System.getProperty("java.library.path"));
     }
 
 }

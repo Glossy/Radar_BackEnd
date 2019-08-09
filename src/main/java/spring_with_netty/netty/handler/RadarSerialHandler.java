@@ -1,5 +1,6 @@
 package spring_with_netty.netty.handler;
 
+import com.sun.xml.internal.bind.v2.TODO;
 import gnu.io.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -99,12 +100,12 @@ public class RadarSerialHandler implements SerialPortEventListener{
 
             portId = CommPortIdentifier.getPortIdentifier(portName);
 
-            if (portId.isCurrentlyOwned()) {
+            if (!(portId.getCurrentOwner()==null) && portId.isCurrentlyOwned()) {
                 throw new IllegalStateException("Com port in use");
             }
 
             // Get the port's ownership
-            this.serialPort = (SerialPort) portId.open( RadarSerialHandler.class.getName(), this.timeOut);
+            this.serialPort = (SerialPort) portId.open( RadarSerialHandler.class.getName(), this.DEFAULT_TIME_OUT);
 
             // Set the parameters of the connection.
             this.serialPort.setSerialPortParams(b, d, s, p);
@@ -116,15 +117,61 @@ public class RadarSerialHandler implements SerialPortEventListener{
             // exception.
             outStream = serialPort.getOutputStream();
             inStream = serialPort.getInputStream();
+
+            logger.info(this.serialPort.getName() + " is open");
+            if (Thread.currentThread().getName().equals("downloadThread")){
+                this.addSerialEventListener(this);
+                byte[] headbuffer = new byte[72];
+
+                //TODO
+                //每次读36字节[72]，然后判断是否为有效帧头。是的话调用函数进一步处理，动态读取剩余大小
+                //如 if(process.onV2Data(hexString) != -1) { do... }
+
+                int dataSize = 0;
+                SerialRadarServer.setUploadFlag(true);
+                while(true){
+                    if (inStream.available() > 0) {
+                        dataSize = inStream.read(headbuffer);
+                        String hexString = processor.bytes2String(headbuffer);
+//                        System.out.println(hexString);
+                        List<Object> returnList = processor.on_V2Data(hexString);
+                        if (returnList == null){
+                            continue;
+                        }
+                        long length = (long)returnList.get(0);
+                        long targetNum = (long)returnList.get(1);
+                        String message = (String)returnList.get(2);
+                        if(length != -1){
+                            int l = Integer.parseInt(String.valueOf((length-36)*2));
+                            byte[] databuffer = new byte[l];
+                            inStream.read(databuffer);
+                            processor.on_V2Target_Data(processor.bytes2String(databuffer), targetNum, message);
+                        }
+                    }else {
+                        Thread.sleep(500);
+                        logger.info(Thread.currentThread().getName() + " wait 500 ms");
+                    }
+                }
+            }
         } catch (NoSuchPortException e1) {
-            throw new IOException(e1.getMessage());
+            this.serialPort.close();
+            throw new IOException(e1.toString()+"\n No such Port Exception");
         } catch (PortInUseException e) {
-            throw new IOException(e.getMessage());
+            this.serialPort.close();
+            throw new IOException(e.toString()+"\n Port in use Exception");
         } catch (IOException e) {
             this.serialPort.close();
             throw e;
         } catch (UnsupportedCommOperationException e) {
+            this.serialPort.close();
             throw new IOException("Unsupported serial port parameter");
+        }  catch (InterruptedException e){
+            this.serialPort.close();
+            logger.error(e.toString());
+        }
+        catch (TooManyListenersException e){
+            this.serialPort.close();
+            logger.error(e.toString());
         }
 
     }
@@ -315,12 +362,13 @@ public class RadarSerialHandler implements SerialPortEventListener{
                     String lines = (String)iterator.next();
                     line = (lines.trim()+'\n').getBytes("UTF-8");
                     sendDataToComPort(line);
+                    Thread.sleep(50);
                 }
             } else {
                 logger.error("gnu.io.SerialPort 为null，取消数据发送...");
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            logger.error(e.toString());
         }
     }
 
@@ -340,19 +388,23 @@ public class RadarSerialHandler implements SerialPortEventListener{
             case SerialPortEvent.DATA_AVAILABLE://获取到串口返回信息
                 byte[] buffer = new byte[2048];
                 int dataSize = 0;
-
-                do{
-                    try{
-                        dataSize = inStream.read(buffer);
-                        String hexString = processor.bytes2String(buffer);
-                        processor.on_V2Data(hexString);
-                    }catch(Exception e){
-                        return;
-                    }
-                }
-                while(dataSize != -1);
-
-                serialPort.close();//这里一定要用close()方法关闭串口，释放资源
+//
+//                do{
+//                    try{
+//                        while(inStream.available() > 0){
+//                            dataSize = inStream.read(buffer);
+//                            String hexString = processor.bytes2String(buffer);
+//                            System.out.println(hexString);
+//                            processor.on_V2Data(hexString);
+//                        }
+//                    }catch(Exception e){
+//                        return;
+//                    }
+//                }
+//                while(dataSize != -1);
+//
+//                serialPort.close();//这里一定要用close()方法关闭串口，释放资源
+//                logger.info(serialPort.getName() + " closed");
 
                 break;
             default:
