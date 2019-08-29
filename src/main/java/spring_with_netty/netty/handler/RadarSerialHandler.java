@@ -126,6 +126,8 @@ public class RadarSerialHandler implements SerialPortEventListener{
                 //TODO
                 //每次读36字节[72]，然后判断是否为有效帧头。是的话调用函数进一步处理，动态读取剩余大小
                 //如 if(process.onV2Data(hexString) != -1) { do... }
+                //TODO
+                //帧头判断有问题 每次读36字节可能造成永远收不到数据
 
                 int dataSize = 0;
                 SerialRadarServer.setUploadFlag(true);

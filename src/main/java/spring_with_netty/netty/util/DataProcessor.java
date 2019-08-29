@@ -217,9 +217,10 @@ public class DataProcessor {
     }
 
     public void on_V2Target_Data(String hex_string, long targetNum, String message) throws IOException{
-        long detectedObjectNum = hexstring2Unit32(hex_string.substring(16, 24));
-        String description = littleEndianString2HexString(hex_string.substring(16,24));
-        long Qformat = hexstring2Unit32(hex_string.substring(16,24));
+//        long detectedObjectNum = hexstring2Unit32(hex_string.substring(16, 24));
+        String description = littleEndianString2HexString(hex_string.substring(16, 24));
+        int detectedObj = hexstring2Unit16(hex_string.substring(16, 20));
+        long Qformat = hexstring2Unit16(hex_string.substring(20, 24));
         long target_count = targetNum;
         String header = message;
 
@@ -237,8 +238,12 @@ public class DataProcessor {
             int y = hexstring2Unit16(hex_string.substring(start+16, start+20)); //Y轴距离
             int z = hexstring2Unit16(hex_string.substring(start+20, start+24)); //Z轴距离
 
+//            message = "{\"dispatch\":\"workers\", \"emit\":{\"event\":\"dot\", \"args\": {\"x\":" + x + ", \"y\":" + y + ", \"z\":" + z
+//                    + ", \"range\":" + range + ", \"doppler\":" + doppler + ", \"peak\":" + peak + ", \"Q-Format Description:\":"
+//                    + description + message + "}}}";
             message = "{\"dispatch\":\"workers\", \"emit\":{\"event\":\"dot\", \"args\": {\"x\":" + x + ", \"y\":" + y + ", \"z\":" + z
-                    + ", \"range\":" + range + ", \"doppler\":" + doppler + ", \"peak\":" + peak + message + "}}}";
+                    + ", \"range\":" + range + ", \"doppler\":" + doppler + ", \"peak\":" + peak + ", \"Q-Format Description:\":"
+                    + description + ", \"Q-DetectedObj:\":" + detectedObj + ", \"Q-Format :\":" + Qformat + message + "}}}";
 
 //            System.out.println(message);
 
