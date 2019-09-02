@@ -113,7 +113,7 @@ public class SerialRadarServer implements Runnable{
                 break;
             }
             try {
-                Thread.currentThread().sleep(500);
+                Thread.currentThread().sleep(5000);
             }catch (Exception e){
                 logger.error(e.toString());
             }

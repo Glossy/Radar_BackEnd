@@ -61,7 +61,7 @@ public class DataProcessor {
      * @return
      * @throws Exception
      */
-    public long hexstring2Unit32(String hexstring) throws IOException{
+    public long hexstring2Uint32(String hexstring) throws IOException{
         BigInteger unit32;
 //        String endianstring = new StringBuffer(hexstring).reverse().toString();
         String endianstring = littleEndianString2HexString(hexstring);
@@ -74,12 +74,12 @@ public class DataProcessor {
 
 
     /**
-     * 二字节（4位16进制）字符串转int 小端
+     * 二字节（4位16进制）字符串转int 小端输入
      * @param hexstring
      * @return
      * @throws Exception
      */
-    public int hexstring2Unit16(String hexstring) throws IOException{
+    public int hexstring2Uint16(String hexstring) throws IOException{
         BigInteger unit16;
         String endianstring = littleEndianString2HexString(hexstring);
         if (hexstring.length() == 4){
@@ -87,6 +87,51 @@ public class DataProcessor {
             return unit16.intValue();
         }
         throw new IOException("Wrong length of input string");
+    }
+
+    /**
+     * 十六进制到二进制
+     * @param hexstring
+     * @param endianflag 输入十六进制是否为小端表示 true 是  false 否
+     * @return 16位二进制
+     * @throws IOException
+     */
+    public String hexstring2BinaryString(String hexstring, boolean endianflag) throws IOException{
+        if(endianflag){
+            hexstring = littleEndianString2HexString(hexstring);
+        }
+        Long l = Long.parseLong(hexstring, 16);
+        String binaryString = Long.toBinaryString(l);
+        if (binaryString.length() != 16){
+            for(int i = 0; i < 16 - binaryString.length(); i++){
+                binaryString = "0" + binaryString;
+            }
+        }
+        return binaryString;
+    }
+
+    /**
+     * Q格式数转换
+     * 小端先转大端 然后转二进制 然后二进制转无符号二进制 最后unit16
+     * @param littleendianHexString 16进制格式 小端
+     * @param Q_Format
+     * @return
+     * @throws IOException
+     */
+    public double qformatString2Unit16(String littleendianHexString, int Q_Format) throws IOException{
+
+        String hexString = littleEndianString2HexString(littleendianHexString);
+
+        String binaryString = hexstring2BinaryString(hexString, false);
+        int sign = 1;
+        if (Integer.parseInt(binaryString.substring(0,1)) == 1){
+            sign = -1;
+        }
+
+        String unsignedBinaryString = "0" + binaryString.substring(1);
+
+        Long l = Long.parseLong(unsignedBinaryString, 2) * sign;
+        return l / Math.pow(2, Q_Format);
     }
     /**
      * java实现C中 uint32_t
@@ -176,34 +221,22 @@ public class DataProcessor {
      * @throws IOException
      */
     public List<Object> on_V2Data(String hex_string) throws IOException{
-//        if (hex_string.substring(0, 16).equals("0201040306050807")){
-//            System.out.println("合法报头");
-
-//            double version = string2Int(hex_string.substring(16, 24)) ; //Version
-//            double total_length = string2Int(hex_string.substring(24, 32)) ; //total packet length
-//            double platform = string2Int(hex_string.substring(32, 40)) ;
-//            double frameNum = string2Int(hex_string.substring(40, 48)) ; //Frame Number
-//            double time = string2Int(hex_string.substring(48, 56)) ; //CPU Cycles
-//
-//            String message = " \"Version\":" + version + ", \"total packet length\":" + total_length + "\"Platform\":"
-//                    + platform + ", \"Frame Number\":"+ frameNum + "\"Time\":"+ time;
-//            on_V2Target_Data(hex_string,message);
-//        } else{
-//            TCPRadarServer.LOG.error("Unknown Header");
-//        }
+//        System.out.println("帧头 "+hex_string);
         if (hex_string.substring(0, 16).equals("0201040306050807")){
             List<Object> list = new ArrayList<>();
-            long version = hexstring2Unit32(hex_string.substring(16, 24)) ; //Version
-            long total_length = hexstring2Unit32(hex_string.substring(24, 32)) ; //total packet length
-            long platform = hexstring2Unit32(hex_string.substring(32, 40)) ;
-            long frameNum = hexstring2Unit32(hex_string.substring(40, 48)) ; //Frame Number
-            long timeCpuCycles = hexstring2Unit32(hex_string.substring(48, 56)) ; //CPU Cycles
-            long numDetectedObj = hexstring2Unit32(hex_string.substring(56, 64)); //Detected Objects
-            long numTLVs = hexstring2Unit32(hex_string.substring(64, 72));//Number TLV’s
+            long version = hexstring2Uint32(hex_string.substring(16, 24)) ; //Version
+            long total_length = hexstring2Uint32(hex_string.substring(24, 32)) ; //total packet length
+            long platform = hexstring2Uint32(hex_string.substring(32, 40)) ;
+            long frameNum = hexstring2Uint32(hex_string.substring(40, 48)) ; //Frame Number
+            long timeCpuCycles = hexstring2Uint32(hex_string.substring(48, 56)) ; //CPU Cycles
+            long numDetectedObj = hexstring2Uint32(hex_string.substring(56, 64)); //Detected Objects
+            long numTLVs = hexstring2Uint32(hex_string.substring(64, 72));//Number TLV’s
+            long subFrameNumber = hexstring2Uint32(hex_string.substring(72, 80)); //SubFrameNumber
 
-            String message = " \"Version\":" + version + ", \"total packet length\":" + total_length + "\"Platform\":"
+            String message = " \"Version\":" + version + ", \"total packet length\":" + total_length + ", \"Platform\":"
                     + platform + ", \"Frame Number\":"+ frameNum + ", \"TimeCpuCycles\":"+ timeCpuCycles
-                    + ", \"Detected Objects\":" + numDetectedObj + ", \"Number TLV’s\":" + numTLVs;
+                    + ", \"Detected Objects\":" + numDetectedObj + ", \"Number TLV’s\":" + numTLVs
+                    + ", \"SubFrameNumber\":" + subFrameNumber;
 
             if (total_length%32 != 0){ //雷达会自动补齐缺失位数
                 total_length = (32 - total_length%32) + total_length;
@@ -217,35 +250,30 @@ public class DataProcessor {
     }
 
     public void on_V2Target_Data(String hex_string, long targetNum, String message) throws IOException{
-//        long detectedObjectNum = hexstring2Unit32(hex_string.substring(16, 24));
+//        System.out.println("帧内容 "+hex_string);
         String description = littleEndianString2HexString(hex_string.substring(16, 24));
-        int detectedObj = hexstring2Unit16(hex_string.substring(16, 20));
-        long Qformat = hexstring2Unit16(hex_string.substring(20, 24));
+        int detectedObj = hexstring2Uint16(hex_string.substring(16, 20));
+        int Qformat = hexstring2Uint16(hex_string.substring(20, 24));
         long target_count = targetNum;
         String header = message;
 
-//        if(target_count != 0){
-//            System.out.println("非0目标");
-//        }
         for(int i = 0; i < target_count; i++){
             int start = 24 + 24 * i;
             int end = start +  24;
 
-            int range = hexstring2Unit16(hex_string.substring(start, start+4)) ; //Range Index
-            int doppler = hexstring2Unit16(hex_string.substring(start+4, start+8)); //Doppler Index
-            int peak = hexstring2Unit16(hex_string.substring(start+8, start + 12)); //Peak Value
-            int x = hexstring2Unit16(hex_string.substring(start+12, start+16)); //X轴距离
-            int y = hexstring2Unit16(hex_string.substring(start+16, start+20)); //Y轴距离
-            int z = hexstring2Unit16(hex_string.substring(start+20, start+24)); //Z轴距离
+            int range = hexstring2Uint16(hex_string.substring(start, start+4)) ; //Range Index
+            int doppler = hexstring2Uint16(hex_string.substring(start+4, start+8)); //Doppler Index
+            int peak = hexstring2Uint16(hex_string.substring(start+8, start + 12)); //Peak Value
 
-//            message = "{\"dispatch\":\"workers\", \"emit\":{\"event\":\"dot\", \"args\": {\"x\":" + x + ", \"y\":" + y + ", \"z\":" + z
-//                    + ", \"range\":" + range + ", \"doppler\":" + doppler + ", \"peak\":" + peak + ", \"Q-Format Description:\":"
-//                    + description + message + "}}}";
+            double x = qformatString2Unit16(hex_string.substring(start+12, start+16), Qformat); //单位为 m
+            double y = qformatString2Unit16(hex_string.substring(start+16, start+20), Qformat);
+            double z = qformatString2Unit16(hex_string.substring(start+20, start+24), Qformat);
+
             message = "{\"dispatch\":\"workers\", \"emit\":{\"event\":\"dot\", \"args\": {\"x\":" + x + ", \"y\":" + y + ", \"z\":" + z
-                    + ", \"range\":" + range + ", \"doppler\":" + doppler + ", \"peak\":" + peak + ", \"Q-Format Description:\":"
-                    + description + ", \"Q-DetectedObj:\":" + detectedObj + ", \"Q-Format :\":" + Qformat + message + "}}}";
+                    + ", \"range\":" + range + ", \"doppler\":" + doppler + ", \"peak\":" + peak
+                    + ", \"Q-DetectedObj:\":" + detectedObj + ", \"Q-Format :\":" + Qformat + message + "}}}";
 
-//            System.out.println(message);
+            System.out.println(message);
 
             ForwardingThread.send2WebSocket(Unpooled.wrappedBuffer(message.getBytes()));
             message = header;

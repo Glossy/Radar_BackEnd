@@ -1,10 +1,6 @@
 package spring_with_netty.netty.handler;
 
-import com.sun.xml.internal.bind.v2.TODO;
 import gnu.io.*;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.socket.DatagramPacket;
 import org.apache.log4j.Logger;
 import spring_with_netty.netty.SerialRadarServer;
 import spring_with_netty.netty.util.DataProcessor;
@@ -121,14 +117,14 @@ public class RadarSerialHandler implements SerialPortEventListener{
             logger.info(this.serialPort.getName() + " is open");
             if (Thread.currentThread().getName().equals("downloadThread")){
                 this.addSerialEventListener(this);
-                byte[] headbuffer = new byte[72];
+                byte[] headbuffer = new byte[40];
 
                 //TODO
-                //每次读36字节[72]，然后判断是否为有效帧头。是的话调用函数进一步处理，动态读取剩余大小
+                //每次读40字节[40]，然后判断是否为有效帧头。是的话调用函数进一步处理，动态读取剩余大小
                 //如 if(process.onV2Data(hexString) != -1) { do... }
                 //TODO
                 //帧头判断有问题 每次读36字节可能造成永远收不到数据
-
+                //每次读8字节，字符串匹配，对后几位再加一层帧头黏包判断
                 int dataSize = 0;
                 SerialRadarServer.setUploadFlag(true);
                 while(true){
@@ -144,14 +140,14 @@ public class RadarSerialHandler implements SerialPortEventListener{
                         long targetNum = (long)returnList.get(1);
                         String message = (String)returnList.get(2);
                         if(length != -1){
-                            int l = Integer.parseInt(String.valueOf((length-36)*2));
+                            int l = Integer.parseInt(String.valueOf(length-36));
                             byte[] databuffer = new byte[l];
                             inStream.read(databuffer);
                             processor.on_V2Target_Data(processor.bytes2String(databuffer), targetNum, message);
                         }
                     }else {
-                        Thread.sleep(500);
-                        logger.info(Thread.currentThread().getName() + " wait 500 ms");
+                        Thread.sleep(1000);
+                        logger.info(Thread.currentThread().getName() + " wait 1000 ms");
                     }
                 }
             }
@@ -270,9 +266,7 @@ public class RadarSerialHandler implements SerialPortEventListener{
 
     /**
      * This method reads block of data with size.
-     *
-     * @param len
-     *            the number of bytes to read.
+     * @param len the number of bytes to read.
      * @return the bytes of array.
      * @throws IOException
      *             if {@link IOException} occurs.
@@ -302,7 +296,6 @@ public class RadarSerialHandler implements SerialPortEventListener{
 
     /**
      * Gets all available data from input stream.
-     *
      * @return the available data.
      * @throws IOException
      *             if {@link IOException} occurs.
@@ -314,7 +307,6 @@ public class RadarSerialHandler implements SerialPortEventListener{
 
     /**
      * 往串口发送数据
-     *
      * @param orders      待发送数据
      */
     public void sendDataToComPort(byte[] orders) {
