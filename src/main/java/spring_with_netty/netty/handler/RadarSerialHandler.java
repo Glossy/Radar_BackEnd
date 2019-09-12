@@ -88,7 +88,7 @@ public class RadarSerialHandler implements SerialPortEventListener{
      */
     public void openPort(final String portName, int b, int d, int s, int p) throws IOException {
         try {
-            if (portName == null) {
+            if (portName == null || portName.equals("")) {
                 throw new NullPointerException("Com port is null");
             }
             // Obtain a CommPortIdentifier object for the port you want to open

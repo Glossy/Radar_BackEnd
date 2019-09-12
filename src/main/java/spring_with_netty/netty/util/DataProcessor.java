@@ -112,7 +112,7 @@ public class DataProcessor {
 
     /**
      * Q格式数转换
-     * 小端先转大端 然后转二进制 然后二进制转无符号二进制 最后unit16
+     * 小端先转大端 然后转二进制（补码） 然后二进制转无符号二进制（原码） 最后unit16
      * @param littleendianHexString 16进制格式 小端
      * @param Q_Format
      * @return
@@ -122,16 +122,23 @@ public class DataProcessor {
 
         String hexString = littleEndianString2HexString(littleendianHexString);
 
-        String binaryString = hexstring2BinaryString(hexString, false);
-        int sign = 1;
+        String binaryString = hexstring2BinaryString(hexString, false); // 补码格式
+
+        long binary = Long.parseLong(binaryString, 2);
+
+
+        int sign = 1; //判断正负
         if (Integer.parseInt(binaryString.substring(0,1)) == 1){
             sign = -1;
+            binary = binary ^ 0b1111111111111111;
+            binary = binary + 0b0000000000000001;
         }
 
-        String unsignedBinaryString = "0" + binaryString.substring(1);
+//        Integer.parseInt(binaryString.substring(0,1));
+//        String unsignedBinaryString = "0" + binaryString.substring(1);
+//        Long l = Long.parseLong(unsignedBinaryString, 2) * sign;
 
-        Long l = Long.parseLong(unsignedBinaryString, 2) * sign;
-        return l / Math.pow(2, Q_Format);
+        return binary / Math.pow(2, Q_Format) * sign;
     }
     /**
      * java实现C中 uint32_t

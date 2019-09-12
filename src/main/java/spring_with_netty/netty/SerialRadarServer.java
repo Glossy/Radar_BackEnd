@@ -75,6 +75,7 @@ public class SerialRadarServer implements Runnable{
                     break;
                 } catch (Exception e){
                     logger.error(e.toString());
+                    continue;
                 }
 
             }
